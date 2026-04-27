@@ -1,88 +1,78 @@
-//
-//  ContentView.swift
-//  RandomDecisionApp
-//
-//  Created by Briyana Verdugo on 4/27/26.
-//
-
 import SwiftUI
-import CoreData
 
 struct ContentView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
+    // 1. Storage for your choices
+    @State private var choices: [String] = []
+    @State private var newChoiceText = ""
+    @State private var winningChoice = ""
 
     var body: some View {
         NavigationView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                    } label: {
-                        Text(item.timestamp!, formatter: itemFormatter)
+            VStack {
+                // 2. Input Section
+                HStack {
+                    TextField("Enter an option (e.g. Pizza)", text: $newChoiceText)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                    
+                    Button(action: {
+                        if !newChoiceText.isEmpty {
+                            choices.append(newChoiceText)
+                            newChoiceText = "" // Clear the field
+                        }
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
                     }
                 }
-                .onDelete(perform: deleteItems)
+                .padding()
+
+                // 3. The "Summary View" (Your List)
+                List {
+                    ForEach(choices, id: \.self) { choice in
+                        Text(choice)
+                    }
+                    .onDelete(perform: deleteChoice) // Allows swiping to delete
+                }
+
+                // 4. The Decision Logic
+                if !winningChoice.isEmpty {
+                    Text("The winner is: \(winningChoice)")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+                        .foregroundColor(.blue)
+                        .padding()
+                }
+
+                Button(action: pickRandom) {
+                    Text("Decide For Me!")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(choices.isEmpty ? Color.gray : Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                .disabled(choices.isEmpty) // Button won't work if list is empty
+                .padding()
             }
+            .navigationTitle("Decider")
             .toolbar {
-#if os(iOS)
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-#endif
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
-                }
-            }
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                EditButton() // Standard iOS edit button for the list
             }
         }
     }
 
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
+    // Helper functions
+    func pickRandom() {
+        if let random = choices.randomElement() {
+            winningChoice = random
         }
+    }
+
+    func deleteChoice(at offsets: IndexSet) {
+        choices.remove(atOffsets: offsets)
     }
 }
 
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
-
 #Preview {
-    ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    ContentView()
 }
