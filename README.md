@@ -26,4 +26,4 @@ The Random Decision App allows users to input multiple choices (e.g., lunch opti
 ## Contributors
 - **Briyana Verdugo**
 - **Vee Vasisht**
-- 
+  
