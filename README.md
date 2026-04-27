@@ -24,5 +24,6 @@ The Random Decision App allows users to input multiple choices (e.g., lunch opti
 4. Press `Cmd + R` to build and run.
 
 ## Contributors
-- **Briyana Verdugo** - Technical Lead / Developer
-- **Vee Vasisht** - Architecture Design / Documentation
+- **Briyana Verdugo**
+- **Vee Vasisht**
+- 
